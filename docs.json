@@ -9,9 +9,7 @@
   },
   "favicon": "/logo/logo.png",
   "api": {
-    "openapi": [
-      "api-reference/openapi.json"
-    ]
+    "openapi": ["api-reference/openapi.json"]
   },
   "navigation": {
     "tabs": [
@@ -20,10 +18,7 @@
         "groups": [
           {
             "group": "Getting Started",
-            "pages": [
-              "index",
-              "quickstart"
-            ]
+            "pages": ["index", "quickstart", "faq"]
           },
           {
             "group": "SDKs",
@@ -53,9 +48,7 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": [
-              "api-reference/introduction"
-            ]
+            "pages": ["api-reference/introduction"]
           },
           {
             "group": "Actor",
