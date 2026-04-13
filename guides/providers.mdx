@@ -3,7 +3,7 @@ title: "Providers"
 description: "Pocketenv supports 10 backend providers. Switch between them without changing your code."
 ---
 
-Pocketenv abstracts over different compute backends. A sandbox definition is a portable AT Protocol record — you choose which provider actually runs it.
+Pocketenv abstracts over different compute backends. A sandbox definition is a portable [AT Protocol](https://atproto.com) record — you choose which provider actually runs it.
 
 ## Default provider
 
@@ -159,13 +159,13 @@ The `--base` flag sets the starting template for your sandbox. Bases are AT Prot
 
 | Base | Description |
 |---|---|
-| `openclaw` | General-purpose Linux dev environment (default) |
-| `zeroclaw` | Minimal base image |
-| `picoclaw` | Ultra-lightweight |
-| `nix` | Nix-based environment |
+| `openclaw` | General-purpose with openclaw pre-installed |
+| `zeroclaw` | ZeroClaw minimal Sandbox |
+| `picoclaw` | PicoClaw minimal Sandbox |
+| `nix` | Nix-based environment Sandbox |
 | `claude-code` | Optimized for Claude Code |
 | `codex` | Optimized for Codex |
-| `opencrust` | Rust development |
+| `opencrust` | OpenCrust minimal Sandbox |
 
 ```bash
 pocketenv create my-sandbox --base openclaw
