@@ -204,12 +204,6 @@
         "label": "GitHub"
       },
       {
-        "type": "discord",
-        "icon": "discord",
-        "href": "https://discord.gg/9ada4pFUFS",
-        "label": "Discord"
-      },
-      {
         "label": "Support",
         "href": "mailto:hi@pocketenv.io"
       }
