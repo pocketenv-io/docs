@@ -1,91 +1,205 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "theme": "almond",
+  "name": "Pocketenv Documentation",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#7033ff",
+    "light": "#7033ff",
+    "dark": "#7033ff"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/logo/logo.png",
+  "api": {
+    "openapi": [
+      "api-reference/openapi.json"
+    ]
+  },
   "navigation": {
     "tabs": [
       {
         "tab": "Guides",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "SDKs",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "development",
+              "sdks/javascript",
+              "sdks/gleam",
+              "sdks/clojure",
+              "sdks/elixir"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Guides",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "guides/providers",
+              "guides/exec-and-console",
+              "guides/secrets-and-env",
+              "guides/ports-and-networking",
+              "guides/services",
+              "guides/backups"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Overview",
             "pages": [
               "api-reference/introduction"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Actor",
+            "expanded": true,
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/actor/get-profile",
+              "api-reference/actor/get-actor-sandboxes",
+              "api-reference/actor/get-terminal-token"
             ]
+          },
+          {
+            "group": "Sandboxes",
+            "pages": [
+              "api-reference/sandbox/list",
+              "api-reference/sandbox/get",
+              "api-reference/sandbox/create",
+              "api-reference/sandbox/start",
+              "api-reference/sandbox/stop",
+              "api-reference/sandbox/delete",
+              "api-reference/sandbox/claim",
+              "api-reference/sandbox/exec",
+              "api-reference/sandbox/update-settings"
+            ],
+            "expanded": true
+          },
+          {
+            "group": "Networking",
+            "pages": [
+              "api-reference/sandbox/expose-port",
+              "api-reference/sandbox/unexpose-port",
+              "api-reference/sandbox/get-exposed-ports",
+              "api-reference/sandbox/expose-vscode"
+            ],
+            "expanded": true
+          },
+          {
+            "group": "Directories",
+            "pages": [
+              "api-reference/sandbox/push-directory",
+              "api-reference/sandbox/pull-directory"
+            ],
+            "expanded": true
+          },
+          {
+            "group": "Preferences",
+            "pages": [
+              "api-reference/sandbox/get-preferences",
+              "api-reference/sandbox/put-preferences"
+            ],
+            "expanded": true
+          },
+          {
+            "group": "SSH & Tailscale",
+            "pages": [
+              "api-reference/sandbox/get-ssh-keys",
+              "api-reference/sandbox/put-ssh-keys",
+              "api-reference/sandbox/get-tailscale-auth-key",
+              "api-reference/sandbox/put-tailscale-auth-key",
+              "api-reference/sandbox/get-tailscale-token",
+              "api-reference/sandbox/put-tailscale-token"
+            ],
+            "expanded": true
+          },
+          {
+            "group": "Backups",
+            "pages": [
+              "api-reference/sandbox/list-backups",
+              "api-reference/sandbox/create-backup",
+              "api-reference/sandbox/restore-backup"
+            ],
+            "expanded": true
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "api-reference/sandbox/list-integrations",
+              "api-reference/sandbox/create-integration"
+            ],
+            "expanded": true
+          },
+          {
+            "group": "Files",
+            "pages": [
+              "api-reference/file/list",
+              "api-reference/file/get",
+              "api-reference/file/add",
+              "api-reference/file/update",
+              "api-reference/file/delete"
+            ],
+            "expanded": true
+          },
+          {
+            "group": "Secrets",
+            "pages": [
+              "api-reference/secret/list",
+              "api-reference/secret/get",
+              "api-reference/secret/add",
+              "api-reference/secret/update",
+              "api-reference/secret/delete"
+            ],
+            "expanded": true
+          },
+          {
+            "group": "Variables",
+            "pages": [
+              "api-reference/variable/list",
+              "api-reference/variable/get",
+              "api-reference/variable/add",
+              "api-reference/variable/update",
+              "api-reference/variable/delete"
+            ],
+            "expanded": true
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "api-reference/service/list",
+              "api-reference/service/add",
+              "api-reference/service/start",
+              "api-reference/service/stop",
+              "api-reference/service/restart",
+              "api-reference/service/update",
+              "api-reference/service/delete"
+            ],
+            "expanded": true
+          },
+          {
+            "group": "Volumes",
+            "pages": [
+              "api-reference/volume/list",
+              "api-reference/volume/get",
+              "api-reference/volume/add",
+              "api-reference/volume/update",
+              "api-reference/volume/delete"
+            ],
+            "expanded": true
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/logo.png",
+    "dark": "/logo/logo.png"
   },
   "navbar": {
     "links": [
@@ -97,26 +211,25 @@
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "href": "https://pocketenv.io"
     }
   },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/pocketenv-io",
+      "bluesky": "https://bsky.app/profile/pocketenv.io"
     }
   }
 }

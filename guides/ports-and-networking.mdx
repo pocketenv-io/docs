@@ -1,0 +1,109 @@
+---
+title: "Ports & Networking"
+description: "Make sandbox services publicly accessible and open VS Code in the browser."
+---
+
+## Expose a port
+
+When a process is listening on a port inside your sandbox, use `expose` to make it reachable from the internet:
+
+```bash
+pocketenv expose my-sandbox 3000 "Web server"
+# https://abc123.sbx.pocketenv.io
+```
+
+The command returns a **preview URL** you can open in a browser or share with others.
+
+```bash
+# Expose without a description
+pocketenv expose my-sandbox 8080
+```
+
+Valid port range: `1025–65535`.
+
+### SDK
+
+```typescript
+const exposed = await sandbox.expose(3000, "Web server");
+console.log(exposed.previewUrl); // https://abc123.sbx.pocketenv.io
+
+// Expose multiple ports
+await sandbox.expose(8080, "Admin UI");
+await sandbox.expose(5432); // no description
+```
+
+## Unexpose a port
+
+Remove public access to a port:
+
+```bash
+pocketenv unexpose my-sandbox 3000
+```
+
+### SDK
+
+```typescript
+await sandbox.unexpose(3000);
+```
+
+## List exposed ports
+
+```bash
+pocketenv ports list my-sandbox
+```
+
+### SDK
+
+```typescript
+const ports = await sandbox.ports.list();
+// [{ port: 3000, description: "Web server", previewUrl: "https://..." }]
+```
+
+## VS Code in the browser
+
+Expose a browser-based VS Code server running inside your sandbox:
+
+```bash
+pocketenv vscode my-sandbox
+# https://abc123-vscode.sbx.pocketenv.io
+```
+
+Aliases: `code`, `code-server`
+
+```bash
+pocketenv code my-sandbox
+pocketenv code-server my-sandbox
+```
+
+### SDK
+
+```typescript
+const vscode = await sandbox.exposeVscode();
+console.log(vscode.previewUrl);
+```
+
+## Tailscale (mesh networking)
+
+For private networking between sandboxes, Pocketenv supports Tailscale:
+
+```bash
+# Store a Tailscale auth key (prompted for the value)
+pocketenv tailscale put my-sandbox
+
+# Retrieve the stored key (redacted)
+pocketenv tailscale get my-sandbox
+```
+
+### SDK
+
+```typescript
+await sandbox.putTailscaleAuthKey("tskey-auth-...");
+const key = await sandbox.getTailscaleAuthKey();
+```
+
+## API
+
+- [Expose Port](/api-reference/sandbox/expose-port)
+- [Unexpose Port](/api-reference/sandbox/unexpose-port)
+- [Get Exposed Ports](/api-reference/sandbox/get-exposed-ports)
+- [Expose VS Code](/api-reference/sandbox/expose-vscode)

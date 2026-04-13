@@ -1,0 +1,156 @@
+---
+title: "Gleam"
+description: "Official Gleam SDK for Pocketenv — type-safe, functional, pipe-friendly."
+---
+
+<Info>
+  **GitHub:** [pocketenv-io/pocketenv-gleam](https://github.com/pocketenv-io/pocketenv-gleam) · **hex.pm:** [pocketenv](https://hex.pm/packages/pocketenv)
+</Info>
+
+## Installation
+
+```sh
+gleam add pocketenv@1.3
+```
+
+## Authentication
+
+Pass your token when creating a client:
+
+```gleam
+import pocketenv
+
+pub fn main() {
+  let client = pocketenv.new_client("your-api-token")
+  // use client with any sub-module
+}
+```
+
+## Sandboxes
+
+```gleam
+import pocketenv
+import pocketenv/sandbox
+import gleam/option.{None, Some}
+import gleam/io
+
+pub fn main() {
+  let client = pocketenv.new_client("your-token")
+
+  // Create
+  let assert Ok(sb) =
+    client
+    |> sandbox.new("my-sandbox", "openclaw", "cloudflare")
+    |> sandbox.with_description("My app sandbox")
+    |> sandbox.create()
+  io.println("Created: " <> sb.data.id)
+
+  // List
+  let assert Ok(#(sandboxes, _total)) = sandbox.list(client, None, None)
+
+  // Start, exec, stop
+  let assert Ok(Nil) = sb |> sandbox.start(None, None)
+  let assert Ok(result) = sb |> sandbox.exec("echo hello")
+  io.println(result.stdout)
+  let assert Ok(Nil) = sb |> sandbox.stop()
+
+  // Delete
+  let assert Ok(Nil) = sb |> sandbox.delete()
+}
+```
+
+## Environment variables
+
+```gleam
+import pocketenv/env
+import gleam/option.{None}
+
+// Set a variable
+let assert Ok(Nil) = sb |> env.put("DATABASE_URL", "postgres://localhost/mydb")
+
+// List variables
+let assert Ok(vars) = sb |> env.list(None, None)
+
+// Delete by ID
+case vars {
+  [first, ..] -> { let assert Ok(Nil) = sb |> env.delete(first.id) }
+  [] -> Nil
+}
+```
+
+## Secrets
+
+```gleam
+import pocketenv/secrets
+import gleam/option.{None}
+
+// Store a secret (encrypted at rest)
+let assert Ok(Nil) = sb |> secrets.put("API_KEY", "super-secret-value")
+
+// List secret names (values are never returned)
+let assert Ok(all) = sb |> secrets.list(None, None)
+
+// Delete
+case all {
+  [first, ..] -> { let assert Ok(Nil) = sb |> secrets.delete(first.id) }
+  [] -> Nil
+}
+```
+
+## Files
+
+```gleam
+import pocketenv/files
+
+// Write a file
+let assert Ok(Nil) = sb |> files.write("/app/config.json", "{\"debug\": true}")
+
+// List files
+let assert Ok(all) = sb |> files.list()
+
+// Delete
+case all {
+  [first, ..] -> { let assert Ok(Nil) = sb |> files.delete(first.id) }
+  [] -> Nil
+}
+```
+
+## Ports & networking
+
+```gleam
+import pocketenv/ports
+
+// Expose a port
+let assert Ok(preview_url) = sb |> ports.expose(3000, "Web server")
+io.println(preview_url)
+
+// List exposed ports
+let assert Ok(exposed) = sb |> ports.list()
+
+// Remove
+let assert Ok(Nil) = sb |> ports.unexpose(3000)
+
+// VS Code
+let assert Ok(vscode_url) = sb |> ports.vscode()
+```
+
+## Volumes
+
+```gleam
+import pocketenv/volumes
+
+let assert Ok(Nil) = sb |> volumes.create("data", "/mnt/data", False)
+let assert Ok(vols) = sb |> volumes.list()
+```
+
+## Services
+
+```gleam
+import pocketenv/services
+
+let assert Ok(svc) = sb |> services.add("web", "npm start", "Node server", [3000])
+let assert Ok(Nil) = sb |> services.start(svc.id)
+let assert Ok(Nil) = sb |> services.stop(svc.id)
+let assert Ok(Nil) = sb |> services.restart(svc.id)
+let assert Ok(Nil) = sb |> services.delete(svc.id)
+```

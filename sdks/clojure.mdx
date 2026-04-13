@@ -1,0 +1,127 @@
+---
+title: "Clojure"
+description: "Official Clojure SDK for Pocketenv — idiomatic, chainable with `->`."
+---
+
+<Info>
+  **GitHub:** [pocketenv-io/pocketenv-clojure](https://github.com/pocketenv-io/pocketenv-clojure) · **Clojars:** [io.pocketenv/pocketenv](https://clojars.org/io.pocketenv/pocketenv)
+</Info>
+
+## Installation
+
+Add to `deps.edn`:
+
+```clojure
+{:deps {io.pocketenv/pocketenv {:mvn/version "0.1.4"}}}
+```
+
+## Authentication
+
+| Method | Details |
+|---|---|
+| Env var | `POCKETENV_TOKEN=<your-token>` |
+| Token file | `~/.pocketenv/token.json` → `{"token": "..."}` |
+| Per-call | Pass `:token "..."` in the opts map |
+
+All functions return `{:ok value}` on success or `{:error reason}` on failure. Sandbox operations also accept `{:ok sandbox}` tuples directly so you can chain with `->` without unwrapping.
+
+## Quick start
+
+```clojure
+(require '[pocketenv-io.pocketenv :as pocketenv]
+         '[pocketenv-io.sandbox   :as sandbox])
+
+(-> (pocketenv/create-sandbox "my-box")
+    (sandbox/start)
+    (sandbox/wait-until-running)
+    (sandbox/exec "echo" ["hello from pocketenv"]))
+;; => {:ok #ExecResult{:stdout "hello from pocketenv\n" :stderr "" :exit-code 0}}
+```
+
+## Sandbox lifecycle
+
+```clojure
+;; Create (defaults: openclaw base, cloudflare provider)
+(pocketenv/create-sandbox "my-box")
+
+;; With options
+(pocketenv/create-sandbox "my-box"
+  {:provider   "daytona"
+   :repo       "https://github.com/acme/my-app"
+   :keep-alive true})
+
+;; Fetch existing
+(pocketenv/get-sandbox "my-box")
+
+;; List all sandboxes
+(pocketenv/list-sandboxes)
+(pocketenv/list-sandboxes {:limit 10 :offset 20})
+
+;; List sandboxes for a specific user
+(pocketenv/list-sandboxes-by-actor "alice.pocketenv.io")
+(pocketenv/list-sandboxes-by-actor "did:plc:abc123")
+
+;; Lifecycle
+(def sb (pocketenv/create-sandbox "my-box"))
+(sandbox/start  sb)
+(sandbox/stop   sb)
+(sandbox/delete sb)
+
+;; Poll until running (with optional timeout)
+(-> (pocketenv/create-sandbox "ci-runner")
+    (sandbox/start)
+    (sandbox/wait-until-running {:timeout-ms 120000 :interval-ms 3000}))
+```
+
+## Running commands
+
+```clojure
+(-> (pocketenv/get-sandbox "my-box")
+    (sandbox/exec "ls" ["-la" "/"]))
+;; => {:ok #ExecResult{:stdout "..." :stderr "" :exit-code 0}}
+
+;; ExecResult fields: :stdout  :stderr  :exit-code
+(let [{:ok result} (sandbox/exec sb "node" ["--version"])]
+  (println (:stdout result)))
+```
+
+## Ports & networking
+
+```clojure
+;; Expose a port
+(-> (pocketenv/get-sandbox "my-box")
+    (sandbox/expose 3000 {:description "Web server"}))
+;; => {:ok "https://preview.pocketenv.io/..."}
+
+;; List exposed ports
+(-> (pocketenv/get-sandbox "my-box")
+    (sandbox/list-ports))
+;; => {:ok [#Port{:port 3000 :description "Web server" :preview-url "..."}]}
+
+;; Remove a port
+(-> (pocketenv/get-sandbox "my-box")
+    (sandbox/unexpose 3000))
+
+;; VS Code
+(-> (pocketenv/get-sandbox "my-box")
+    (sandbox/vscode))
+;; => {:ok "https://preview.pocketenv.io/.../vscode/..."}
+```
+
+## Full pipeline example
+
+```clojure
+(require '[pocketenv-io.pocketenv :as pocketenv]
+         '[pocketenv-io.sandbox   :as sandbox])
+
+(let [result
+      (-> (pocketenv/create-sandbox "ci-box"
+            {:provider "cloudflare"
+             :repo     "https://github.com/myorg/myapp"})
+          (sandbox/start)
+          (sandbox/wait-until-running {:timeout-ms 120000})
+          (sandbox/exec "npm" ["install"])
+          ;; exec returns {:ok result}, chain keeps working
+          )]
+  (println "Tests:" (get-in result [:ok :exit-code])))
+```

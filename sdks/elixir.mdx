@@ -1,0 +1,151 @@
+---
+title: "Elixir"
+description: "Official Elixir SDK for Pocketenv — pipe-friendly, OTP-ready."
+---
+
+<Info>
+  **GitHub:** [pocketenv-io/pocketenv-elixir](https://github.com/pocketenv-io/pocketenv-elixir) · **hex.pm:** [pocketenv_ex](https://hex.pm/packages/pocketenv_ex)
+</Info>
+
+## Installation
+
+Add to `mix.exs`:
+
+```elixir
+def deps do
+  [
+    {:pocketenv_ex, "~> 0.1"}
+  ]
+end
+```
+
+```sh
+mix deps.get
+```
+
+## Authentication
+
+**`config/config.exs`** (takes precedence over env vars):
+
+```elixir
+import Config
+
+config :pocketenv_ex,
+  token:   "your-pocketenv-token",
+  api_url: "https://api.pocketenv.io"   # optional
+```
+
+**Environment variables:**
+
+```sh
+export POCKETENV_TOKEN="your-pocketenv-token"
+export POCKETENV_API_URL="https://api.pocketenv.io"   # optional
+```
+
+All functions return `{:ok, result}` or `{:error, reason}`. Every `Sandbox` function accepts either a bare `%Sandbox{}` **or** an `{:ok, %Sandbox{}}` tuple as its first argument — so you can pipe across multiple steps without unwrapping.
+
+## Quick start
+
+```elixir
+alias Pocketenv.Sandbox
+
+{:ok, sandbox} =
+  Pocketenv.create_sandbox("my-sandbox")
+  |> Sandbox.start()
+  |> Sandbox.wait_until_running()
+
+{:ok, result} = sandbox |> Sandbox.exec("echo", ["hello"])
+IO.puts(result.stdout)   # => "hello"
+
+{:ok, url} = sandbox |> Sandbox.expose(3000)
+IO.puts(url)             # => "https://3000-my-sandbox.sbx.pocketenv.io"
+
+sandbox |> Sandbox.stop() |> Sandbox.delete()
+```
+
+## Sandbox lifecycle
+
+```elixir
+# Create
+{:ok, sandbox} = Pocketenv.create_sandbox("my-sandbox",
+  base:       "openclaw",
+  provider:   :cloudflare,
+  repo:       "https://github.com/myorg/myapp",
+  keep_alive: true
+)
+
+# Fetch existing
+{:ok, sandbox} = Pocketenv.get_sandbox("my-sandbox")
+
+# List sandboxes
+{:ok, {sandboxes, total}} = Pocketenv.list_sandboxes(limit: 20, offset: 0)
+
+# List by actor (DID or handle)
+{:ok, {sandboxes, _}} = Pocketenv.list_sandboxes_by_actor("alice.bsky.social")
+
+# Lifecycle
+{:ok, sandbox} = sandbox |> Sandbox.start()
+{:ok, sandbox} = sandbox |> Sandbox.stop()
+{:ok, sandbox} = sandbox |> Sandbox.delete()
+
+# Poll until running
+{:ok, sandbox} =
+  Pocketenv.create_sandbox("ci-runner")
+  |> Sandbox.start()
+  |> Sandbox.wait_until_running(timeout_ms: 120_000, interval_ms: 3_000)
+```
+
+## Running commands
+
+```elixir
+{:ok, result} = sandbox |> Sandbox.exec("ls", ["-la", "/"])
+IO.puts(result.stdout)
+IO.puts(result.stderr)
+IO.inspect(result.exit_code)
+```
+
+## Ports & networking
+
+```elixir
+# Expose a port
+{:ok, preview_url} = sandbox |> Sandbox.expose(3000)
+{:ok, preview_url} = sandbox |> Sandbox.expose(3000, description: "API server")
+IO.puts(preview_url)
+
+# Unexpose
+:ok = sandbox |> Sandbox.unexpose(3000)
+
+# List exposed ports
+{:ok, ports} = sandbox |> Sandbox.list_ports()
+
+# VS Code
+{:ok, vscode_url} = sandbox |> Sandbox.vscode()
+```
+
+## Actor / profile
+
+```elixir
+# Current user
+{:ok, me} = Pocketenv.me()
+IO.puts("Logged in as @#{me.handle}")
+
+# Any user by DID or handle
+{:ok, profile} = Pocketenv.get_profile("alice.bsky.social")
+```
+
+## `create_sandbox/2` options
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `:base` | `string` | `openclaw` | Base sandbox image |
+| `:provider` | `atom` | `:cloudflare` | `:cloudflare`, `:daytona`, `:vercel`, `:deno`, `:e2b`, etc. |
+| `:repo` | `string` | `nil` | Git repo URL to clone on start |
+| `:keep_alive` | `boolean` | `false` | Prevent auto-stop on inactivity |
+| `:token` | `string` | global config | Per-call token override |
+
+## `wait_until_running/2` options
+
+| Option | Default | Description |
+|---|---|---|
+| `:timeout_ms` | `60_000` | Max wait time in ms |
+| `:interval_ms` | `2_000` | Poll interval in ms |

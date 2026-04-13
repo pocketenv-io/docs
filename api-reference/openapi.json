@@ -1,94 +1,146 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
+    "title": "AT Protocol XRPC API",
+    "summary": "An unofficial conversion of AT Protocol's lexicons to OpenAPI's schema format.",
+    "version": "0.0.0",
     "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+      "name": "MIT License",
+      "identifier": "MIT"
+    }
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
-    }
-  ],
-  "security": [
+      "url": "https://api.pocketenv.io/xrpc/",
+      "description": "AT Protocol PDS XRPC server"
+    },
     {
-      "bearerAuth": []
+      "url": "https://api.pocketenv.io/xrpc/",
+      "description": "AT Protocol AppView XRPC server"
     }
   ],
   "paths": {
-    "/plants": {
+    "/io.pocketenv.actor.getActorSandboxes": {
       "get": {
-        "description": "Returns all plants from the system that the user has access to",
+        "tags": ["io.pocketenv.actor"],
+        "summary": "Get all sandboxes for a given actor",
+        "operationId": "io.pocketenv.actor.getActorSandboxes",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
+          {
+            "name": "did",
+            "in": "query",
+            "description": "The DID or handle of the actor",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The DID or handle of the actor",
+              "format": "at-identifier"
+            }
+          },
           {
             "name": "limit",
             "in": "query",
-            "description": "The maximum number of results to return",
+            "description": "The maximum number of sandboxes to return.",
+            "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "minimum": 1
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of sandboxes to skip before starting to collect the result set.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "isRunning",
+            "in": "query",
+            "description": "Filter sandboxes by their running status.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Filter sandboxes by their running status."
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
+                  "type": "object",
+                  "properties": {
+                    "sandboxes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sandboxViewDetailed"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
                   }
                 }
               }
             }
           },
           "400": {
-            "description": "Unexpected error",
+            "description": "Bad Request",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
           },
-          "400": {
-            "description": "unexpected error",
+          "401": {
+            "description": "Unauthorized",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
@@ -96,57 +148,5113 @@
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
+    "/io.pocketenv.actor.getProfile": {
+      "get": {
+        "tags": ["io.pocketenv.actor"],
+        "summary": "Get the profile of an actor",
+        "operationId": "io.pocketenv.actor.getProfile",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
+            "name": "did",
+            "in": "query",
+            "description": "The DID or handle of the actor",
+            "required": false,
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string",
+              "description": "The DID or handle of the actor",
+              "format": "at-identifier"
             }
           }
         ],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
+          "200": {
+            "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/io.pocketenv.actor.defs.profileViewDetailed"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
                 }
               }
             }
           }
         }
       }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
+    },
+    "/io.pocketenv.actor.getTerminalToken": {
+      "get": {
+        "tags": ["io.pocketenv.actor"],
+        "summary": "Get a terminal token",
+        "operationId": "io.pocketenv.actor.getTerminalToken",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "An access token that can be used to authenticate with the terminal service. This token is typically short-lived and should be used immediately to establish a connection with the terminal."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.file.addFile": {
       "post": {
-        "description": "Information about a new plant added to the store",
+        "tags": ["io.pocketenv.file"],
+        "operationId": "io.pocketenv.file.addFile",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
         "requestBody": {
-          "description": "Plant added to the store",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/io.pocketenv.file.defs.file"
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.file.deleteFile": {
+      "post": {
+        "tags": ["io.pocketenv.file"],
+        "operationId": "io.pocketenv.file.deleteFile",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.file.getFile": {
+      "get": {
+        "tags": ["io.pocketenv.file"],
+        "operationId": "io.pocketenv.file.getFile",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The ID of the file to retrieve.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the file to retrieve."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "file": {
+                      "$ref": "#/components/schemas/io.pocketenv.file.defs.fileView"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.file.getFiles": {
+      "get": {
+        "tags": ["io.pocketenv.file"],
+        "operationId": "io.pocketenv.file.getFiles",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sandboxId",
+            "in": "query",
+            "description": "The ID of the sandbox for which to retrieve files.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the sandbox for which to retrieve files."
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The maximum number of files to return.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of files to skip before starting to collect the result set.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "files": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/io.pocketenv.file.defs.fileView"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.file.updateFile": {
+      "post": {
+        "tags": ["io.pocketenv.file"],
+        "operationId": "io.pocketenv.file.updateFile",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "file"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the file to delete"
+                  },
+                  "file": {
+                    "$ref": "#/components/schemas/io.pocketenv.file.defs.file"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.claimSandbox": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Claim a sandbox by id",
+        "operationId": "io.pocketenv.sandbox.claimSandbox",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sandboxViewBasic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.createBackup": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Create a backup of a sandbox by id",
+        "operationId": "io.pocketenv.sandbox.createBackup",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["directory"],
+                "properties": {
+                  "directory": {
+                    "type": "string",
+                    "description": "The directory to backup."
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "An optional description for the backup."
+                  },
+                  "ttl": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.createIntegration": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Create a new integration for the sandbox.",
+        "operationId": "io.pocketenv.sandbox.createIntegration",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "name"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The sandbox ID."
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the integration."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.integrationView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.createSandbox": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Create a sandbox",
+        "operationId": "io.pocketenv.sandbox.createSandbox",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["base"],
+                "properties": {
+                  "base": {
+                    "type": "string",
+                    "description": "The base sandbox URI to clone from, e.g. a template or an existing sandbox."
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the sandbox",
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "A description for the sandbox"
+                  },
+                  "provider": {
+                    "type": "string",
+                    "description": "The provider to create the sandbox on, e.g. 'daytona', 'vercel', 'cloudflare', etc."
+                  },
+                  "topics": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 50
+                    }
+                  },
+                  "repo": {
+                    "type": "string",
+                    "description": "A git repository URL to clone into the sandbox, e.g. a GitHub/Tangled repo."
+                  },
+                  "vcpus": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "memory": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "disk": {
+                    "type": "integer",
+                    "minimum": 3
+                  },
+                  "readme": {
+                    "type": "string",
+                    "description": "A URI to a README for the sandbox.",
+                    "format": "uri"
+                  },
+                  "secrets": {
+                    "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.secrets"
+                  },
+                  "envs": {
+                    "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.envs"
+                  },
+                  "keepAlive": {
+                    "type": "boolean",
+                    "description": "Prevent the sandbox from being automatically stop after a period of inactivity. Use with caution, as this may lead to increased costs."
+                  },
+                  "spriteToken": {
+                    "type": "string",
+                    "description": "A token (encrypted) for accessing sprite resources"
+                  },
+                  "redactedSpriteToken": {
+                    "type": "string",
+                    "description": "A redacted token for accessing sprite resources"
+                  },
+                  "denoDeployToken": {
+                    "type": "string",
+                    "description": "A token (encrypted) for accessing Deno Deploy resources"
+                  },
+                  "redactedDenoDeployToken": {
+                    "type": "string",
+                    "description": "A redacted token for accessing Deno Deploy resources"
+                  },
+                  "daytonaApiKey": {
+                    "type": "string",
+                    "description": "A token (encrypted) for accessing Daytona resources"
+                  },
+                  "redactedDaytonaApiKey": {
+                    "type": "string",
+                    "description": "A redacted token for accessing Daytona resources"
+                  },
+                  "daytonaOrganizationId": {
+                    "type": "string",
+                    "description": "The organization ID for Daytona resources"
+                  },
+                  "vercelApiToken": {
+                    "type": "string",
+                    "description": "A token (encrypted) for accessing Vercel resources"
+                  },
+                  "redactedVercelApiToken": {
+                    "type": "string",
+                    "description": "A redacted token for accessing Vercel resources"
+                  },
+                  "vercelProjectId": {
+                    "type": "string",
+                    "description": "The project ID for Vercel resources"
+                  },
+                  "vercelTeamId": {
+                    "type": "string",
+                    "description": "The team ID for Vercel resources"
+                  },
+                  "modalTokenId": {
+                    "type": "string",
+                    "description": "A token (encrypted) for accessing Modal resources"
+                  },
+                  "redactedModalTokenId": {
+                    "type": "string",
+                    "description": "A redacted token for accessing Modal resources"
+                  },
+                  "modalTokenSecret": {
+                    "type": "string",
+                    "description": "A token (encrypted) for accessing Modal resources"
+                  },
+                  "redactedModalTokenSecret": {
+                    "type": "string",
+                    "description": "A redacted token for accessing Modal resources"
+                  },
+                  "e2bApiKey": {
+                    "type": "string",
+                    "description": "An API KEY (encrypted) for accessing E2B resources"
+                  },
+                  "redactedE2bApiKey": {
+                    "type": "string",
+                    "description": "A redacted API KEY for accessing E2B resources"
+                  },
+                  "hopxApiKey": {
+                    "type": "string",
+                    "description": "An API KEY (encrypted) for accessing hopx resources"
+                  },
+                  "redactedHopxApiKey": {
+                    "type": "string",
+                    "description": "A redacted API KEY for accessing hopx resources"
+                  },
+                  "runloopApiKey": {
+                    "type": "string",
+                    "description": "An API KEY (encrypted) for accessing Runloop resources"
+                  },
+                  "redactedRunloopApiKey": {
+                    "type": "string",
+                    "description": "A redacted API KEY for accessing Runloop resources"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sandboxViewBasic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.deleteSandbox": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Delete a sandbox by uri",
+        "operationId": "io.pocketenv.sandbox.deleteSandbox",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sandboxViewBasic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.exec": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Execute a command in a sandbox.",
+        "operationId": "io.pocketenv.sandbox.exec",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["command"],
+                "properties": {
+                  "command": {
+                    "type": "string",
+                    "description": "The command to execute in the sandbox."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "stdout": {
+                      "type": "string",
+                      "description": "The output of the executed command."
+                    },
+                    "stderr": {
+                      "type": "string",
+                      "description": "The error output of the executed command, if any."
+                    },
+                    "exitCode": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.exposePort": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Expose a port for a sandbox.",
+        "operationId": "io.pocketenv.sandbox.exposePort",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["port"],
+                "properties": {
+                  "port": {
+                    "type": "integer",
+                    "minimum": 1025,
+                    "maximum": 65535
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "A description of the port."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "previewUrl": {
+                      "type": "string",
+                      "description": "The preview URL for the exposed port."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.exposeVscode": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Expose an instance of VS Code for a sandbox. This allows users to access a web-based version of VS Code that is connected to their sandbox environment, enabling them to edit code, manage files, and perform other development tasks directly from their browser.",
+        "operationId": "io.pocketenv.sandbox.exposeVscode",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "previewUrl": {
+                      "type": "string",
+                      "description": "The preview URL for the exposed port."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.getBackups": {
+      "get": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Get the list of backups for a sandbox.",
+        "operationId": "io.pocketenv.sandbox.getBackups",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The sandbox ID.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The sandbox ID."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "backups": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/io.pocketenv.port.defs.backupViewBasic"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.getExposedPorts": {
+      "get": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Get the list of exposed ports for a sandbox.",
+        "operationId": "io.pocketenv.sandbox.getExposedPorts",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The sandbox ID.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The sandbox ID."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ports": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/io.pocketenv.port.defs.portView"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.getIntegrations": {
+      "get": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Get the integrations for a sandbox.",
+        "operationId": "io.pocketenv.sandbox.getIntegrations",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The sandbox ID.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The sandbox ID."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.integrationsView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.getPreferences": {
+      "get": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Get sandbox preferences",
+        "operationId": "io.pocketenv.sandbox.getPreferences",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The sandbox ID or URI to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The sandbox ID or URI to retrieve"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.preferences"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.getSandbox": {
+      "get": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Get a sandbox by ID or URI",
+        "operationId": "io.pocketenv.sandbox.getSandbox",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The sandbox ID or URI to retrieve",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The sandbox ID or URI to retrieve"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sandboxViewBasic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.getSandboxes": {
+      "get": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Get all sandboxes",
+        "operationId": "io.pocketenv.sandbox.getSandboxes",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The maximum number of sandboxes to return.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of sandboxes to skip before starting to collect the result set.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sandboxes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sandboxViewBasic"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.getSshKeys": {
+      "get": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Get the SSH keys for a sandbox.",
+        "operationId": "io.pocketenv.sandbox.getSshKeys",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The sandbox ID.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The sandbox ID."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sshKeysView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.getTailscaleAuthKey": {
+      "get": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Get the Tailscale token for a sandbox.",
+        "operationId": "io.pocketenv.sandbox.getTailscaleAuthKey",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The sandbox ID.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The sandbox ID."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.tailscaleAuthKeyView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.getTailscaleToken": {
+      "get": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Get the Tailscale token for a sandbox.",
+        "operationId": "io.pocketenv.sandbox.getTailscaleToken",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The sandbox ID.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The sandbox ID."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.tailscaleTokenView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.pullDirectory": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Pull a directory from the cp storage into a Sandbox.",
+        "operationId": "io.pocketenv.sandbox.pullDirectory",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["sandboxId", "directoryPath"],
+                "properties": {
+                  "sandboxId": {
+                    "type": "string",
+                    "description": "ID of the Sandbox into which to pull the directory."
+                  },
+                  "uuid": {
+                    "type": "string",
+                    "description": "ID of the directory in cp storage to pull into the Sandbox."
+                  },
+                  "directoryPath": {
+                    "type": "string",
+                    "description": "Destination path within the Sandbox where the directory should be pulled. This should be an absolute path."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.pushDirectory": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Push a directory from a Sandbox to the cp Storage.",
+        "operationId": "io.pocketenv.sandbox.pushDirectory",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["sandboxId", "directoryPath"],
+                "properties": {
+                  "sandboxId": {
+                    "type": "string",
+                    "description": "ID of the source Sandbox to read the directory from."
+                  },
+                  "directoryPath": {
+                    "type": "string",
+                    "description": "Path of the directory within the Sandbox to push to cp storage. This should be an absolute path."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string",
+                      "description": "The UUID of the pushed directory in cp storage. This can be used to reference the directory in other API calls, such as creating a file from the directory or sharing the directory with another sandbox."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.putPreferences": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Update sandbox preferences.",
+        "operationId": "io.pocketenv.sandbox.putPreferences",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["sandboxId", "preferences"],
+                "properties": {
+                  "sandboxId": {
+                    "type": "string",
+                    "description": "The sandbox ID or URI"
+                  },
+                  "preferences": {
+                    "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.preferences"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.putSshKeys": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Add or update SSH keys for a sandbox.",
+        "operationId": "io.pocketenv.sandbox.putSshKeys",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "privateKey", "publicKey"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The sandbox ID."
+                  },
+                  "privateKey": {
+                    "type": "string",
+                    "description": "The private SSH key (encrypted)"
+                  },
+                  "publicKey": {
+                    "type": "string",
+                    "description": "The public SSH key."
+                  },
+                  "redacted": {
+                    "type": "string",
+                    "description": "The redacted SSH key."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sshKeysView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.putTailscaleAuthKey": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Store a Tailscale Auth Key for the sandbox. This Auth Key will be used to authenticate with the Tailscale API and manage the sandbox's Tailscale node.",
+        "operationId": "io.pocketenv.sandbox.putTailscaleAuthKey",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "authKey"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The sandbox ID."
+                  },
+                  "authKey": {
+                    "type": "string",
+                    "description": "The Tailscale Auth Key (encrypted) to store for the sandbox."
+                  },
+                  "redacted": {
+                    "type": "string",
+                    "description": "The redacted SSH key."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.tailscaleAuthKeyView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.putTailscaleToken": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Store a Tailscale token for the sandbox. This token will be used to authenticate with the Tailscale API and manage the sandbox's Tailscale node.",
+        "operationId": "io.pocketenv.sandbox.putTailscaleToken",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "token"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The sandbox ID."
+                  },
+                  "token": {
+                    "type": "string",
+                    "description": "The Tailscale token (encrypted) to store for the sandbox."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.tailscaleTokenView"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.restoreBackup": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Restore a backup of a sandbox",
+        "operationId": "io.pocketenv.sandbox.restoreBackup",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["backupId"],
+                "properties": {
+                  "backupId": {
+                    "type": "string",
+                    "description": "The backup ID to restore."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.startSandbox": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Start a sandbox",
+        "operationId": "io.pocketenv.sandbox.startSandbox",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "repo": {
+                    "type": "string",
+                    "description": "The git repository URL to clone into the sandbox before starting it. Optional."
+                  },
+                  "keepAlive": {
+                    "type": "boolean",
+                    "description": "Prevent the sandbox from being automatically stop after a period of inactivity. Use with caution, as this may lead to increased costs."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sandboxViewBasic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.stopSandbox": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Stop a sandbox",
+        "operationId": "io.pocketenv.sandbox.stopSandbox",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sandboxViewBasic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.unexposePort": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Unexpose a port for a sandbox.",
+        "operationId": "io.pocketenv.sandbox.unexposePort",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["port"],
+                "properties": {
+                  "port": {
+                    "type": "integer",
+                    "minimum": 1024,
+                    "maximum": 65535
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.sandbox.updateSandboxSettings": {
+      "post": {
+        "tags": ["io.pocketenv.sandbox"],
+        "summary": "Update sandbox settings",
+        "operationId": "io.pocketenv.sandbox.updateSandboxSettings",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "The name of the sandbox",
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "A description for the sandbox"
+                  },
+                  "topics": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "maxLength": 50
+                    }
+                  },
+                  "repo": {
+                    "type": "string",
+                    "description": "A git repository URL to clone into the sandbox, e.g. a GitHub/Tangled repo.",
+                    "format": "uri"
+                  },
+                  "vcpus": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "memory": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "disk": {
+                    "type": "integer",
+                    "minimum": 3
+                  },
+                  "readme": {
+                    "type": "string",
+                    "description": "A URI to a README for the sandbox.",
+                    "format": "uri"
+                  },
+                  "secrets": {
+                    "$ref": "#/components/schemas/io.pocketenv.secret.defs.secrets"
+                  },
+                  "variables": {
+                    "$ref": "#/components/schemas/io.pocketenv.variable.defs.variables"
+                  },
+                  "files": {
+                    "$ref": "#/components/schemas/io.pocketenv.file.defs.file"
+                  },
+                  "volumes": {
+                    "$ref": "#/components/schemas/io.pocketenv.volume.defs.volumes"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.profileViewDetailed"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.secret.addSecret": {
+      "post": {
+        "tags": ["io.pocketenv.secret"],
+        "operationId": "io.pocketenv.secret.addSecret",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["secret"],
+                "properties": {
+                  "secret": {
+                    "$ref": "#/components/schemas/io.pocketenv.secret.defs.secret"
+                  },
+                  "redacted": {
+                    "type": "string",
+                    "description": "The redacted secret value."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.secret.deleteSecret": {
+      "post": {
+        "tags": ["io.pocketenv.secret"],
+        "operationId": "io.pocketenv.secret.deleteSecret",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.secret.getSecret": {
+      "get": {
+        "tags": ["io.pocketenv.secret"],
+        "operationId": "io.pocketenv.secret.getSecret",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The ID of the secret for which to retrieve secrets.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the secret for which to retrieve secrets."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "secret": {
+                      "$ref": "#/components/schemas/io.pocketenv.secret.defs.secretView"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.secret.getSecrets": {
+      "get": {
+        "tags": ["io.pocketenv.secret"],
+        "operationId": "io.pocketenv.secret.getSecrets",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sandboxId",
+            "in": "query",
+            "description": "The ID of the sandbox for which to retrieve secrets.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the sandbox for which to retrieve secrets."
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The maximum number of secrets to return.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of secrets to skip before starting to collect the result set.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "secrets": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/io.pocketenv.secret.defs.secretView"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.secret.updateSecret": {
+      "post": {
+        "tags": ["io.pocketenv.secret"],
+        "operationId": "io.pocketenv.secret.updateSecret",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "secret"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the secret to update."
+                  },
+                  "secret": {
+                    "$ref": "#/components/schemas/io.pocketenv.secret.defs.secret"
+                  },
+                  "redacted": {
+                    "type": "string",
+                    "description": "The redacted secret value."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.service.addService": {
+      "post": {
+        "tags": ["io.pocketenv.service"],
+        "operationId": "io.pocketenv.service.addService",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["service"],
+                "properties": {
+                  "service": {
+                    "$ref": "#/components/schemas/io.pocketenv.service.defs.service"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.service.deleteService": {
+      "post": {
+        "tags": ["io.pocketenv.service"],
+        "operationId": "io.pocketenv.service.deleteService",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.service.getServices": {
+      "get": {
+        "tags": ["io.pocketenv.service"],
+        "operationId": "io.pocketenv.service.getServices",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sandboxId",
+            "in": "query",
+            "description": "The ID of the sandbox for which to retrieve services.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the sandbox for which to retrieve services."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "services": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/io.pocketenv.service.defs.serviceView"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.service.restartService": {
+      "post": {
+        "tags": ["io.pocketenv.service"],
+        "operationId": "io.pocketenv.service.restartService",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.service.startService": {
+      "post": {
+        "tags": ["io.pocketenv.service"],
+        "operationId": "io.pocketenv.service.startService",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.service.stopService": {
+      "post": {
+        "tags": ["io.pocketenv.service"],
+        "operationId": "io.pocketenv.service.stopService",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.service.updateService": {
+      "post": {
+        "tags": ["io.pocketenv.service"],
+        "operationId": "io.pocketenv.service.updateService",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["service"],
+                "properties": {
+                  "service": {
+                    "$ref": "#/components/schemas/io.pocketenv.service.defs.service"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.variable.addVariable": {
+      "post": {
+        "tags": ["io.pocketenv.variable"],
+        "operationId": "io.pocketenv.variable.addVariable",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["variable"],
+                "properties": {
+                  "variable": {
+                    "$ref": "#/components/schemas/io.pocketenv.variable.defs.variable"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.variable.deleteVariable": {
+      "post": {
+        "tags": ["io.pocketenv.variable"],
+        "operationId": "io.pocketenv.variable.deleteVariable",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.variable.getVariable": {
+      "get": {
+        "tags": ["io.pocketenv.variable"],
+        "operationId": "io.pocketenv.variable.getVariable",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The ID of the variable for which to retrieve variables.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the variable for which to retrieve variables."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "variable": {
+                      "$ref": "#/components/schemas/io.pocketenv.variable.defs.variableView"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.variable.getVariables": {
+      "get": {
+        "tags": ["io.pocketenv.variable"],
+        "operationId": "io.pocketenv.variable.getVariables",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sandboxId",
+            "in": "query",
+            "description": "The ID of the sandbox for which to retrieve variables.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the sandbox for which to retrieve variables."
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The maximum number of variables to return.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of variables to skip before starting to collect the result set.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "variables": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/io.pocketenv.variable.defs.variableView"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.variable.updateVariable": {
+      "post": {
+        "tags": ["io.pocketenv.variable"],
+        "operationId": "io.pocketenv.variable.updateVariable",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "variable"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the variable to update."
+                  },
+                  "variable": {
+                    "$ref": "#/components/schemas/io.pocketenv.variable.defs.variable"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.volume.addVolume": {
+      "post": {
+        "tags": ["io.pocketenv.volume"],
+        "operationId": "io.pocketenv.volume.addVolume",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["volume"],
+                "properties": {
+                  "volume": {
+                    "$ref": "#/components/schemas/io.pocketenv.volume.defs.volume"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.volume.deleteVolume": {
+      "post": {
+        "tags": ["io.pocketenv.volume"],
+        "operationId": "io.pocketenv.volume.deleteVolume",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.volume.getVolume": {
+      "get": {
+        "tags": ["io.pocketenv.volume"],
+        "operationId": "io.pocketenv.volume.getVolume",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "query",
+            "description": "The ID of the volume for which to retrieve volumes.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the volume for which to retrieve volumes."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "volume": {
+                      "$ref": "#/components/schemas/io.pocketenv.volume.defs.volumeView"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.volume.getVolumes": {
+      "get": {
+        "tags": ["io.pocketenv.volume"],
+        "operationId": "io.pocketenv.volume.getVolumes",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sandboxId",
+            "in": "query",
+            "description": "The ID of the sandbox for which to retrieve volumes.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "The ID of the sandbox for which to retrieve volumes."
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "The maximum number of volumes to return.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "The number of volumes to skip before starting to collect the result set.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "volumes": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/io.pocketenv.volume.defs.volumeView"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/io.pocketenv.volume.updateVolume": {
+      "post": {
+        "tags": ["io.pocketenv.volume"],
+        "operationId": "io.pocketenv.volume.updateVolume",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["id", "volume"],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the volume to update."
+                  },
+                  "volume": {
+                    "$ref": "#/components/schemas/io.pocketenv.volume.defs.volume"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "oneOf": [
+                        {
+                          "const": "InvalidRequest"
+                        },
+                        {
+                          "const": "ExpiredToken"
+                        },
+                        {
+                          "const": "InvalidToken"
+                        }
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["error", "message"],
+                  "properties": {
+                    "error": {
+                      "const": "AuthMissing"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -154,64 +5262,992 @@
   },
   "components": {
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
+      "io.pocketenv.actor.defs.profileViewDetailed": {
         "type": "object",
         "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
+          "id": {
+            "type": "string",
+            "description": "The unique identifier of the actor."
           },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
+          "did": {
+            "type": "string",
+            "description": "The DID of the actor."
+          },
+          "handle": {
+            "type": "string",
+            "description": "The handle of the actor."
+          },
+          "displayName": {
+            "type": "string",
+            "description": "The display name of the actor."
+          },
+          "avatar": {
+            "type": "string",
+            "description": "The URL of the actor's avatar image.",
+            "format": "uri"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "The date and time when the actor was created.",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "The date and time when the actor was last updated.",
+            "format": "date-time"
           }
         }
       },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
+      "app.bsky.actor.profile": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
+          "displayName": {
+            "type": "string",
+            "maxLength": 640
           },
-          "message": {
-            "type": "string"
+          "description": {
+            "type": "string",
+            "description": "Free-form profile description text.",
+            "maxLength": 2560
+          },
+          "avatar": {
+            "type": "string",
+            "format": "binary",
+            "maxLength": 1000000
+          },
+          "banner": {
+            "type": "string",
+            "format": "binary",
+            "maxLength": 10000000
+          },
+          "labels": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/com.atproto.label.defs.selfLabels"
+              }
+            ]
+          },
+          "joinedViaStarterPack": {
+            "$ref": "#/components/schemas/com.atproto.repo.strongRef"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "io.pocketenv.file.defs.file": {
+        "type": "object",
+        "required": ["path", "content"],
+        "properties": {
+          "sandboxId": {
+            "type": "string",
+            "description": "The ID of the sandbox to which the file belongs. This is used to associate the file with a specific sandbox environment."
+          },
+          "path": {
+            "type": "string",
+            "description": "The file path within the sandbox, e.g. '/app/config.json', '/home/user/.ssh/id_rsa', etc."
+          },
+          "content": {
+            "type": "string",
+            "description": "The content of the file. This will be written to the specified path within the sandbox. The content should be base64 encoded if it's binary data."
+          }
+        }
+      },
+      "io.pocketenv.file.defs.fileView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the file."
+          },
+          "path": {
+            "type": "string",
+            "description": "The file path within the sandbox, e.g. '/app/config.json', '/home/user/.ssh/id_rsa', etc."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "The timestamp when the file was created.",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "The timestamp when the file was last updated.",
+            "format": "date-time"
+          }
+        }
+      },
+      "io.pocketenv.file.defs.files": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/io.pocketenv.file.defs.file"
+        }
+      },
+      "io.pocketenv.port.defs.portView": {
+        "type": "object",
+        "description": "A view of a port exposed by a sandbox.",
+        "properties": {
+          "port": {
+            "type": "integer",
+            "minimum": 1025,
+            "maximum": 65535
+          },
+          "description": {
+            "type": "string",
+            "description": "A description of the port."
+          },
+          "previewUrl": {
+            "type": "string",
+            "description": "A URL for previewing the service running on the port"
+          }
+        }
+      },
+      "io.pocketenv.publicKey": {
+        "type": "object",
+        "required": ["name", "key", "createdAt"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the public key",
+            "maxLength": 255
+          },
+          "key": {
+            "type": "string",
+            "description": "The public key value, e.g. an SSH public key string."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.sandboxViewBasic": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the sandbox",
+            "maxLength": 50
+          },
+          "provider": {
+            "type": "string",
+            "description": "The provider of the sandbox, e.g. 'daytona', 'vercel', 'cloudflare', etc.",
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000
+          },
+          "website": {
+            "type": "string",
+            "description": "Any URI related to the sandbox",
+            "format": "uri"
+          },
+          "logo": {
+            "type": "string",
+            "description": "URI to an image logo for the sandbox",
+            "format": "uri"
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 50
+            },
+            "maxItems": 50
+          },
+          "repo": {
+            "type": "string",
+            "description": "A git repository URL to clone into the sandbox, e.g. a GitHub/Tangled repo."
+          },
+          "readme": {
+            "type": "string",
+            "description": "A URI to a README for the sandbox.",
+            "format": "uri"
+          },
+          "vcpus": {
+            "type": "integer"
+          },
+          "memory": {
+            "type": "integer"
+          },
+          "disk": {
+            "type": "integer"
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1025,
+              "maximum": 65535
+            },
+            "maxItems": 100
+          },
+          "installs": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.sandboxViewDetailed": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the sandbox",
+            "maxLength": 50
+          },
+          "provider": {
+            "type": "string",
+            "description": "The provider of the sandbox, e.g. 'daytona', 'vercel', 'cloudflare', etc.",
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000
+          },
+          "status": {
+            "type": "string",
+            "description": "The current status of the sandbox, e.g. 'RUNNING', 'STOPPED', etc."
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timeout": {
+            "type": "integer"
+          },
+          "baseSandbox": {
+            "type": "string",
+            "description": "The base sandbox that this sandbox was created from, if any. This can be used to determine the template or configuration used to create the sandbox."
+          },
+          "website": {
+            "type": "string",
+            "description": "Any URI related to the sandbox",
+            "format": "uri"
+          },
+          "logo": {
+            "type": "string",
+            "description": "URI to an image logo for the sandbox",
+            "format": "uri"
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 50
+            },
+            "maxItems": 50
+          },
+          "repo": {
+            "type": "string",
+            "description": "A git repository URL to clone into the sandbox, e.g. a GitHub/Tangled repo."
+          },
+          "readme": {
+            "type": "string",
+            "description": "A URI to a README for the sandbox.",
+            "format": "uri"
+          },
+          "vcpus": {
+            "type": "integer"
+          },
+          "memory": {
+            "type": "integer"
+          },
+          "disk": {
+            "type": "integer"
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1025,
+              "maximum": 65535
+            },
+            "maxItems": 100
+          },
+          "installs": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "owner": {
+            "$ref": "#/components/schemas/io.pocketenv.user.defs.userViewBasic"
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.sandboxDetailsPref": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the sandbox",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string",
+            "description": "A description for the sandbox"
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 50
+            }
+          },
+          "repo": {
+            "type": "string",
+            "description": "A git repository URL to clone into the sandbox, e.g. a GitHub/Tangled repo."
+          },
+          "vcpus": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "memory": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "disk": {
+            "type": "integer",
+            "minimum": 3
+          },
+          "readme": {
+            "type": "string",
+            "description": "A URI to a README for the sandbox.",
+            "format": "uri"
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.secretPref": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the secret",
+            "minLength": 1
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the secret. This will be encrypted at rest and redacted in any API responses."
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.variablePref": {
+        "type": "object",
+        "description": "A variable to add to the sandbox",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the variable",
+            "minLength": 1
+          },
+          "value": {
+            "type": "string",
+            "description": "The value of the variable. This will be visible in API responses and should not contain sensitive information."
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.filePref": {
+        "type": "object",
+        "description": "A file to add to the sandbox",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the file",
+            "minLength": 1
+          },
+          "content": {
+            "type": "string",
+            "description": "The content of the file."
+          },
+          "encrypt": {
+            "type": "boolean",
+            "description": "Whether the file content should be encrypted at rest and redacted in API responses. This is useful for files that may contain sensitive information."
+          },
+          "path": {
+            "type": "string",
+            "description": "The path within the sandbox where the file will be created, e.g. '/app/config.json'. If not provided, the file will be created in the root directory of the sandbox."
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.volumePref": {
+        "type": "object",
+        "description": "A volume to add to the sandbox",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the volume",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "description": "The mount path within the sandbox where the volume will be attached, e.g. '/data', '/logs', etc."
+          },
+          "readOnly": {
+            "type": "boolean",
+            "description": "Whether the volume should be mounted as read-only"
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.sandboxProviderPref": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the sandbox provider",
+            "minLength": 1
+          },
+          "apiKey": {
+            "type": "string",
+            "description": "The encrypted API key used to authenticate with the sandbox provider.",
+            "minLength": 1
+          },
+          "redactedApiKey": {
+            "type": "string",
+            "description": "The redacted API key for the sandbox provider, returned in API responses."
+          },
+          "organizationId": {
+            "type": "string",
+            "description": "The ID of the organization in the sandbox provider, if applicable. This can be used to associate the sandbox with a specific organization or team within the provider's platform."
+          },
+          "vercelProjectId": {
+            "type": "string",
+            "description": "The project ID for Vercel, if the sandbox provider is Vercel. This is used to determine which Vercel project the sandbox should be created in."
+          },
+          "vercelTeamId": {
+            "type": "string",
+            "description": "The team ID for Vercel, if the sandbox provider is Vercel and the sandbox should be created within a specific team. This is used to determine which team within the Vercel project the sandbox should be associated with."
+          },
+          "modalTokenId": {
+            "type": "string",
+            "description": "The token ID for Modal, if the sandbox provider is Modal. This is used to determine which Modal token to use when creating the sandbox."
+          },
+          "modalTokenSecret": {
+            "type": "string",
+            "description": "The token secret for Modal, if the sandbox provider is Modal. This is used to determine which Modal token secret to use when creating the sandbox."
+          },
+          "redactedModalTokenId": {
+            "type": "string",
+            "description": "The redacted token ID for Modal, returned in API responses when the sandbox provider is Modal. This can be used to identify which Modal token is being used without exposing the actual token ID."
+          },
+          "redactedModalTokenSecret": {
+            "type": "string",
+            "description": "The redacted token secret for Modal, returned in API responses when the sandbox provider is Modal. This can be used to identify which Modal token secret is being used without exposing the actual token secret."
+          },
+          "e2bApiKey": {
+            "type": "string",
+            "description": "The API KEY for E2B, if the sandbox provider is E2B. This is used to determine which E2B API KEY to use when creating the sandbox."
+          },
+          "redactedE2bApiKey": {
+            "type": "string",
+            "description": "The redacted API KEY for E2B, returned in API responses when the sandbox provider is E2B. This can be used to identify which E2B API KEY is being used without exposing the actual API KEY."
+          },
+          "hopxApiKey": {
+            "type": "string",
+            "description": "The API KEY for hopx, if the sandbox provider is hopx. This is used to determine which hopx API KEY to use when creating the sandbox."
+          },
+          "redactedHopxApiKey": {
+            "type": "string",
+            "description": "The redacted API KEY for hopx, returned in API responses when the sandbox provider is hopx. This can be used to identify which hopx API KEY is being used without exposing the actual API KEY."
+          },
+          "runloopApiKey": {
+            "type": "string",
+            "description": "The API KEY for Runloop, if the sandbox provider is Runloop. This is used to determine which Runloop API KEY to use when creating the sandbox."
+          },
+          "redactedRunloopApiKey": {
+            "type": "string",
+            "description": "The redacted API KEY for Runloop, returned in API responses when the sandbox provider is Runloop. This can be used to identify which Runloop API KEY is being used without exposing the actual API KEY."
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.preferences": {
+        "type": "array",
+        "items": {
+          "oneOf": [
+            {
+              "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sandboxDetailsPref"
+            },
+            {
+              "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.secretPref"
+            },
+            {
+              "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.variablePref"
+            },
+            {
+              "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.filePref"
+            },
+            {
+              "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.volumePref"
+            },
+            {
+              "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.sandboxProviderPref"
+            }
+          ]
+        }
+      },
+      "io.pocketenv.sandbox.defs.sshKeysView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the SSH key."
+          },
+          "publicKey": {
+            "type": "string",
+            "description": "The public SSH key."
+          },
+          "privateKey": {
+            "type": "string",
+            "description": "The private SSH key (redacted in API responses)"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "The timestamp when the SSH key was created.",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "The timestamp when the SSH key was last updated.",
+            "format": "date-time"
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.tailscaleAuthKeyView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the Tailscale Auth Key."
+          },
+          "authKey": {
+            "type": "string",
+            "description": "The Tailscale auth key (redacted in API responses)"
+          },
+          "redacted": {
+            "type": "string",
+            "description": "The redacted Auth Key."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "The timestamp when the Tailscale Auth Key was created.",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "The timestamp when the Tailscale Auth Key was last updated.",
+            "format": "date-time"
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.integrationView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the integration."
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the integration, e.g. 'GitHub', 'Slack', 'Trello', etc."
+          },
+          "webhookUrl": {
+            "type": "string",
+            "description": "The webhook URL of the integration.",
+            "format": "uri"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "The timestamp when the integration was created.",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "The timestamp when the integration was last updated.",
+            "format": "date-time"
+          }
+        }
+      },
+      "io.pocketenv.sandbox.defs.integrationsView": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/io.pocketenv.sandbox.defs.integrationView"
+        }
+      },
+      "io.pocketenv.sandbox.defs.backupViewBasic": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the backup."
+          },
+          "directory": {
+            "type": "string",
+            "description": "The directory that was backed up."
+          },
+          "description": {
+            "type": "string",
+            "description": "An optional description for the backup."
+          },
+          "expiresAt": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "datetime when the backup was created.",
+            "format": "date-time"
+          }
+        }
+      },
+      "io.pocketenv.sandbox": {
+        "type": "object",
+        "required": ["name", "createdAt"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the sandbox",
+            "maxLength": 255
+          },
+          "base": {
+            "$ref": "#/components/schemas/com.atproto.repo.strongRef"
+          },
+          "provider": {
+            "type": "string",
+            "description": "The provider of the sandbox, e.g. 'daytona', 'vercel', 'cloudflare', etc.",
+            "maxLength": 50
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 3000
+          },
+          "website": {
+            "type": "string",
+            "description": "Any URI related to the sandbox",
+            "format": "uri"
+          },
+          "logo": {
+            "type": "string",
+            "description": "URI to an image logo for the sandbox",
+            "format": "uri"
+          },
+          "topics": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 50
+            },
+            "maxItems": 50
+          },
+          "repo": {
+            "type": "string",
+            "description": "A git repository URL to clone into the sandbox, e.g. a GitHub/Tangled repo."
+          },
+          "readme": {
+            "type": "string",
+            "description": "A URI to a README for the sandbox.",
+            "format": "uri"
+          },
+          "vcpus": {
+            "type": "integer"
+          },
+          "memory": {
+            "type": "integer"
+          },
+          "disk": {
+            "type": "integer"
+          },
+          "volumes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "A path to be mounted as a volume in the sandbox, e.g. '/data', '/logs', etc."
+            }
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "secrets": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Name of a secret to be added to the sandbox environment. Secrets are typically encrypted and stored securely, and can be used to store sensitive information such as API keys, database credentials, etc."
+            }
+          },
+          "envs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Name of an environment variable to be added to the sandbox environment."
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "io.pocketenv.secret.defs.secretView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the secret."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the secret, e.g. 'DATABASE_URL', 'SSH_KEY', etc."
+          }
+        }
+      },
+      "io.pocketenv.secret.defs.secret": {
+        "type": "object",
+        "required": ["name", "value"],
+        "properties": {
+          "sandboxId": {
+            "type": "string",
+            "description": "The ID of the sandbox to which the secret belongs. This is used to associate the secret with a specific sandbox environment."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the secret, e.g. 'DATABASE_URL', 'SSH_KEY', etc."
+          },
+          "value": {
+            "type": "string",
+            "description": "Value of the secret. This will be encrypted at rest and redacted in any API responses."
+          }
+        }
+      },
+      "io.pocketenv.secret.defs.secrets": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/io.pocketenv.secret.defs.secret"
+        }
+      },
+      "io.pocketenv.service.defs.serviceView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the service."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the service."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command to run the service."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the service."
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "io.pocketenv.service.defs.service": {
+        "type": "object",
+        "required": ["name", "command"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the service."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command to run the service."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the service."
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "com.atproto.repo.strongRef": {
+        "type": "object",
+        "required": ["uri", "cid"],
+        "properties": {
+          "uri": {
+            "type": "string",
+            "format": "at-uri"
+          },
+          "cid": {
+            "type": "string",
+            "format": "cid"
+          }
+        }
+      },
+      "io.pocketenv.variable.defs.variableView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the environment variable."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the environment variable, e.g. 'NODE_ENV', 'PORT', etc."
+          },
+          "value": {
+            "type": "string",
+            "description": "Value of the environment variable. This will be visible in API responses and should not contain sensitive information."
+          }
+        }
+      },
+      "io.pocketenv.variable.defs.variable": {
+        "type": "object",
+        "required": ["name", "value"],
+        "properties": {
+          "sandboxId": {
+            "type": "string",
+            "description": "The ID of the sandbox to which the environment variable belongs. This is used to associate the variable with a specific sandbox environment."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the environment variable, e.g. 'NODE_ENV', 'PORT', etc."
+          },
+          "value": {
+            "type": "string",
+            "description": "Value of the environment variable. This will be visible in API responses and should not contain sensitive information."
+          }
+        }
+      },
+      "io.pocketenv.variable.defs.variables": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/io.pocketenv.variable.defs.envVar"
+        }
+      },
+      "io.pocketenv.volume.defs.volumeView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the volume."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the volume, e.g. 'data-volume', 'logs', etc."
+          },
+          "path": {
+            "type": "string",
+            "description": "The path within the sandbox where the volume will be mounted, e.g. '/data', '/logs', etc."
+          },
+          "readOnly": {
+            "type": "boolean",
+            "description": "Whether the volume should be mounted as read-only within the sandbox. Defaults to false (read-write)."
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "The timestamp when the volume was created.",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "description": "The timestamp when the volume was last updated.",
+            "format": "date-time"
+          }
+        }
+      },
+      "io.pocketenv.volume.defs.volumes": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/io.pocketenv.volume.defs.volume"
+        }
+      },
+      "io.pocketenv.volume.defs.volume": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "sandboxId": {
+            "type": "string",
+            "description": "The ID of the sandbox to which the volume belongs. This is used to associate the volume with a specific sandbox environment."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the volume, e.g. 'data-volume', 'logs', etc."
+          },
+          "path": {
+            "type": "string",
+            "description": "The path within the sandbox where the volume will be mounted, e.g. '/data', '/logs', etc."
+          },
+          "readOnly": {
+            "type": "boolean",
+            "description": "Whether the volume should be mounted as read-only within the sandbox. Defaults to false (read-write)."
           }
         }
       }
     },
     "securitySchemes": {
-      "bearerAuth": {
+      "Bearer": {
         "type": "http",
         "scheme": "bearer"
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "io.pocketenv.actor"
+    },
+    {
+      "name": "app.bsky.actor"
+    },
+    {
+      "name": "io.pocketenv.file"
+    },
+    {
+      "name": "io.pocketenv.port"
+    },
+    {
+      "name": "io.pocketenv.publicKey"
+    },
+    {
+      "name": "io.pocketenv.sandbox"
+    },
+    {
+      "name": "io.pocketenv.secret"
+    },
+    {
+      "name": "io.pocketenv.service"
+    },
+    {
+      "name": "com.atproto.repo"
+    },
+    {
+      "name": "io.pocketenv.variable"
+    },
+    {
+      "name": "io.pocketenv.volume"
+    }
+  ]
 }

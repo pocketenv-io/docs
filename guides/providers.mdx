@@ -1,0 +1,173 @@
+---
+title: "Providers"
+description: "Pocketenv supports 10 backend providers. Switch between them without changing your code."
+---
+
+Pocketenv abstracts over different compute backends. A sandbox definition is a portable AT Protocol record — you choose which provider actually runs it.
+
+## Default provider
+
+The default is **Cloudflare**. No API key needed when using the managed Pocketenv platform.
+
+```bash
+pocketenv create my-sandbox                          # uses cloudflare by default
+pocketenv create my-sandbox --provider cloudflare
+```
+
+## Specifying a provider
+
+```bash
+pocketenv create my-sandbox --provider <name>
+```
+
+Via SDK:
+
+```typescript
+const sandbox = await Sandbox.create({ provider: "daytona", base: "openclaw" });
+```
+
+## Supported providers
+
+<AccordionGroup>
+  <Accordion title="Cloudflare (default)" icon="cloud">
+    Lightweight sandboxes powered by Cloudflare Workers. No credentials needed on the managed platform.
+
+    ```bash
+    pocketenv create my-sandbox --provider cloudflare
+    ```
+  </Accordion>
+
+  <Accordion title="Daytona" icon="server">
+    Full-featured development environments via [Daytona](https://daytona.io).
+
+    ```bash
+    pocketenv create my-sandbox --provider daytona
+    ```
+
+    Required credentials — store them as sandbox preferences:
+
+    | Field | Description |
+    |---|---|
+    | `DAYTONA_API_KEY` | Your Daytona API key |
+    | `DAYTONA_ORGANIZATION_ID` | Optional organization ID |
+  </Accordion>
+
+  <Accordion title="Vercel" icon="triangle">
+    Serverless sandboxes on [Vercel](https://vercel.com/docs/functions/runtimes/sandbox).
+
+    ```bash
+    pocketenv create my-sandbox --provider vercel
+    ```
+
+    | Field | Description |
+    |---|---|
+    | `VERCEL_API_TOKEN` | Your Vercel API token |
+    | `VERCEL_PROJECT_ID` | Target Vercel project |
+    | `VERCEL_TEAM_ID` | Optional team ID |
+  </Accordion>
+
+  <Accordion title="E2B" icon="box">
+    Secure sandboxes optimized for AI agents via [E2B](https://e2b.dev).
+
+    ```bash
+    pocketenv create my-sandbox --provider e2b
+    ```
+
+    | Field | Description |
+    |---|---|
+    | `E2B_API_KEY` | Your E2B API key |
+  </Accordion>
+
+  <Accordion title="Modal" icon="bolt">
+    Serverless GPU/CPU compute via [Modal](https://modal.com).
+
+    ```bash
+    pocketenv create my-sandbox --provider modal
+    ```
+
+    | Field | Description |
+    |---|---|
+    | `MODAL_TOKEN_ID` | Modal token ID |
+    | `MODAL_TOKEN_SECRET` | Modal token secret |
+  </Accordion>
+
+  <Accordion title="Runloop" icon="rotate">
+    Infrastructure-grade sandboxes via [Runloop](https://runloop.ai).
+
+    ```bash
+    pocketenv create my-sandbox --provider runloop
+    ```
+
+    | Field | Description |
+    |---|---|
+    | `RUNLOOP_API_KEY` | Your Runloop API key |
+  </Accordion>
+
+  <Accordion title="HopX" icon="network-wired">
+    AI-native compute via [HopX](https://hopx.ai).
+
+    ```bash
+    pocketenv create my-sandbox --provider hopx
+    ```
+
+    | Field | Description |
+    |---|---|
+    | `HOPX_API_KEY` | Your HopX API key |
+  </Accordion>
+
+  <Accordion title="Deno Deploy" icon="dinosaur">
+    Deno-based sandboxes via [Deno Deploy](https://deno.com/deploy).
+
+    ```bash
+    pocketenv create my-sandbox --provider deno
+    ```
+
+    | Field | Description |
+    |---|---|
+    | `DENO_DEPLOY_TOKEN` | Your Deno Deploy token |
+  </Accordion>
+
+  <Accordion title="Fly Sprites" icon="plane">
+    Fast micro-VMs via [Fly.io Sprites](https://fly.io/blog/fly-sprites).
+
+    ```bash
+    pocketenv create my-sandbox --provider sprites
+    ```
+
+    | Field | Description |
+    |---|---|
+    | `SPRITE_TOKEN` | Your Sprites token |
+  </Accordion>
+
+  <Accordion title="Blaxel" icon="cube">
+    Pocketenv-native provider via [Blaxel](https://blaxel.ai).
+
+    ```bash
+    pocketenv create my-sandbox --provider blaxel
+    ```
+
+    | Field | Description |
+    |---|---|
+    | `BLAXEL_WORKSPACE` | Your Blaxel workspace |
+    | `BLAXEL_API_KEY` | Your Blaxel API key |
+  </Accordion>
+</AccordionGroup>
+
+## Base images
+
+The `--base` flag sets the starting template for your sandbox. Bases are AT Protocol URIs but you can use short names:
+
+| Base | Description |
+|---|---|
+| `openclaw` | General-purpose Linux dev environment (default) |
+| `zeroclaw` | Minimal base image |
+| `picoclaw` | Ultra-lightweight |
+| `nix` | Nix-based environment |
+| `claude-code` | Optimized for Claude Code |
+| `codex` | Optimized for Codex |
+| `opencrust` | Rust development |
+
+```bash
+pocketenv create my-sandbox --base openclaw
+pocketenv create my-sandbox --base nix
+```

@@ -1,0 +1,190 @@
+---
+title: "JavaScript / TypeScript"
+description: "Official JS/TS SDK for Pocketenv — `@pocketenv/sdk`."
+---
+
+<Info>
+  **GitHub:** [pocketenv-io/pocketenv-js](https://github.com/pocketenv-io/pocketenv-js) · **npm:** [@pocketenv/sdk](https://www.npmjs.com/package/@pocketenv/sdk)
+</Info>
+
+## Installation
+
+```bash
+npm install @pocketenv/sdk
+# or
+bun add @pocketenv/sdk
+```
+
+## Authentication
+
+Token resolution order:
+
+1. `Sandbox.configure({ token })` or inline `Sandbox.create({ token })`
+2. `POCKETENV_TOKEN` environment variable
+3. `~/.pocketenv/token.json`
+
+`Sandbox.configure()` is optional if you have a token file or env var set.
+
+## Quick start
+
+```typescript
+import { Sandbox } from "@pocketenv/sdk";
+
+const sandbox = await Sandbox.create({ base: "openclaw" });
+
+const result = await sandbox.sh`echo hello`;
+console.log(result.stdout); // "hello\n"
+
+await sandbox.stop();
+await sandbox.delete();
+```
+
+## Sandbox lifecycle
+
+```typescript
+// Create
+const sandbox = await Sandbox.create({
+  base: "openclaw",
+  name: "my-sandbox",
+  provider: "cloudflare",
+});
+
+// Fetch existing
+const existing = await Sandbox.get("sandbox-id");
+
+// List
+const { sandboxes, total } = await Sandbox.list({ limit: 20, offset: 0 });
+
+// Start / stop / delete
+await sandbox.start({ repo: "github:myorg/myapp", keepAlive: true });
+await sandbox.stop();
+await sandbox.delete();
+```
+
+## Builder pattern
+
+Useful when setting many options:
+
+```typescript
+const sandbox = await Sandbox.builder("openclaw")
+  .name("api-sandbox")
+  .provider("daytona")
+  .vcpus(4)
+  .memory(8192)
+  .disk(20)
+  .env("NODE_ENV", "production")
+  .env("PORT", "3000")
+  .secret("DATABASE_URL", process.env.DATABASE_URL!)
+  .secret("API_KEY", process.env.API_KEY!)
+  .keepAlive()
+  .create();
+```
+
+Available builder methods: `name`, `description`, `provider`, `topics`, `repo`, `vcpus`, `memory`, `disk`, `readme`, `env`, `secret`, `keepAlive`, `token`, `baseUrl`.
+
+## Running commands
+
+```typescript
+// Tagged template literal (safe interpolation)
+const dir = "/home/user/app";
+const result = await sandbox.sh`ls -la ${dir}`;
+console.log(result.stdout);
+console.log(result.stderr);
+console.log(result.exitCode);
+
+// Raw exec
+await sandbox.exec("npm install");
+```
+
+## Environment variables & secrets
+
+```typescript
+// Env vars (plaintext)
+await sandbox.env.put("API_URL", "https://api.example.com");
+const vars = await sandbox.env.list();
+await sandbox.env.delete(varId);
+
+// Secrets (encrypted, redacted in responses)
+await sandbox.secret.put("API_KEY", process.env.API_KEY!);
+const secrets = await sandbox.secret.list();
+await sandbox.secret.delete(secretId);
+```
+
+## Ports & networking
+
+```typescript
+const exposed = await sandbox.expose(3000, "Web server");
+console.log(exposed.previewUrl);
+
+await sandbox.unexpose(3000);
+
+const ports = await sandbox.ports.list();
+
+// VS Code in the browser
+const vscode = await sandbox.vscode();
+console.log(vscode.previewUrl);
+```
+
+## Files
+
+```typescript
+await sandbox.file.write("/app/config.json", JSON.stringify({ debug: true }));
+
+const files = await sandbox.file.list();
+const file  = await sandbox.file.get(fileId);
+await sandbox.file.delete(fileId);
+```
+
+## Services
+
+```typescript
+const service = await sandbox.service.add("web", {
+  command: "npm start",
+  description: "Node.js web server",
+  ports: [3000],
+});
+
+await sandbox.service.start(service.id);
+await sandbox.service.restart(service.id);
+await sandbox.service.stop(service.id);
+await sandbox.service.delete(service.id);
+```
+
+## Volumes
+
+```typescript
+await sandbox.volume.create("data", "/mnt/data");
+const volumes = await sandbox.volume.list();
+await sandbox.volume.delete(volumeId);
+```
+
+## Backups
+
+```typescript
+const backup = await sandbox.createBackup("/workspace", "pre-deploy", "7d");
+const backups = await sandbox.listBackups();
+await Sandbox.restoreBackup(backupId); // static method
+```
+
+## SSH keys & Tailscale
+
+```typescript
+const keys = await sandbox.getSshKeys();
+await sandbox.putSshKey(publicKey, privateKey);
+
+await sandbox.tailscale.setAuthKey("tskey-auth-...");
+const key = await sandbox.tailscale.getAuthKey();
+```
+
+## Sub-resource reference
+
+| Sub-resource | Methods |
+|---|---|
+| `sandbox.file` | `write`, `list`, `get`, `update`, `delete` |
+| `sandbox.env` | `put`, `list`, `get`, `update`, `delete` |
+| `sandbox.secret` | `put`, `list`, `get`, `update`, `delete` |
+| `sandbox.volume` | `create`, `list`, `get`, `update`, `delete` |
+| `sandbox.ports` | `list` |
+| `sandbox.service` | `add`, `list`, `start`, `stop`, `restart`, `update`, `delete` |
+| `sandbox.tailscale` | `getAuthKey`, `setAuthKey` |
+| `sandbox.backup` | `create`, `list`, `restore` |

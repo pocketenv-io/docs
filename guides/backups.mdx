@@ -1,0 +1,97 @@
+---
+title: "Backups"
+description: "Create point-in-time snapshots of sandbox directories and restore from them."
+---
+
+Backups capture the state of a directory inside your sandbox at a specific moment. Use them before risky operations, deployments, or as part of a CI pipeline.
+
+## Create a backup
+
+```bash
+pocketenv backup create my-sandbox /app \
+  --description "before-deploy" \
+  --ttl 7d
+```
+
+Arguments:
+- `<sandbox>` — target sandbox
+- `<directory>` — absolute path to the directory to back up
+
+Options:
+- `--description, -d` — optional label for the backup
+- `--ttl, -t` — how long to keep the backup (e.g. `10m`, `2h`, `7d`). Default: `3d`
+
+### SDK
+
+```typescript
+const backup = await sandbox.createBackup("/app", {
+  description: "before-deploy",
+  ttl: "7d",
+});
+console.log(backup.id); // bkp_01jqwerty123456789
+```
+
+## List backups
+
+```bash
+pocketenv backup list my-sandbox
+pocketenv backup ls my-sandbox   # alias
+```
+
+Output includes backup ID, directory, description, and expiry time.
+
+### SDK
+
+```typescript
+const backups = await sandbox.listBackups();
+// [{ id: "bkp_...", directory: "/app", description: "before-deploy", expiresAt: ..., createdAt: "..." }]
+```
+
+## Restore a backup
+
+```bash
+pocketenv backup restore bkp_01jqwerty123456789
+```
+
+This replaces the backed-up directory with the snapshot content.
+
+<Warning>
+  Restoring overwrites the current state of the directory. Make sure to back up first if you want to preserve current changes.
+</Warning>
+
+### SDK
+
+```typescript
+await Sandbox.restoreBackup("bkp_01jqwerty123456789");
+```
+
+## TTL reference
+
+| Value | Duration |
+|---|---|
+| `10m` | 10 minutes |
+| `2h` | 2 hours |
+| `1d` | 1 day |
+| `7d` | 7 days (max recommended) |
+
+Backups expire automatically after their TTL — they are not permanent storage.
+
+## Example: pre-deployment workflow
+
+```bash
+# Back up before deploying
+pocketenv backup create prod /app --description "pre-v2.0" --ttl 48h
+
+# Deploy
+pocketenv exec prod "npm run deploy"
+
+# If something went wrong
+pocketenv backup list prod
+pocketenv backup restore bkp_01jqwerty123456789
+```
+
+## API
+
+- [List Backups](/api-reference/sandbox/list-backups)
+- [Create Backup](/api-reference/sandbox/create-backup)
+- [Restore Backup](/api-reference/sandbox/restore-backup)

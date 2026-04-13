@@ -1,0 +1,105 @@
+---
+title: "Services"
+description: "Define and manage long-running processes inside your sandbox."
+---
+
+Services are named, persistent processes running inside a sandbox — think web servers, background workers, databases, or any daemon you want to manage independently.
+
+## Create a service
+
+```bash
+pocketenv service create my-sandbox api "npm start" \
+  --description "Node.js API server" \
+  --ports 3000 8080
+```
+
+Arguments:
+- `<sandbox>` — target sandbox name or ID
+- `<name>` — service name
+- `<command...>` — command to run
+
+Options:
+- `--description, -d` — human-readable description
+- `--ports, -p` — ports the service listens on (space-separated)
+
+### SDK
+
+```typescript
+const service = await sandbox.service.add("api", {
+  command: "npm start",
+  description: "Node.js API server",
+  ports: [3000, 8080],
+});
+console.log(service.id);
+```
+
+## List services
+
+```bash
+pocketenv service list my-sandbox
+pocketenv service ls my-sandbox   # alias
+```
+
+### SDK
+
+```typescript
+const services = await sandbox.service.list();
+// [{ id: "...", name: "api", command: "npm start", ... }]
+```
+
+## Lifecycle
+
+```bash
+pocketenv service start <service-id>    # Start a stopped service
+pocketenv service stop <service-id>     # Stop a running service
+pocketenv service restart <service-id>  # Restart
+pocketenv service delete <service-id>   # Remove permanently
+```
+
+### SDK
+
+```typescript
+await sandbox.service.start(serviceId);
+await sandbox.service.stop(serviceId);
+await sandbox.service.restart(serviceId);
+await sandbox.service.delete(serviceId);
+```
+
+## Update a service
+
+```bash
+# Update via API (see API reference)
+```
+
+### SDK
+
+```typescript
+await sandbox.service.update(serviceId, {
+  command: "node dist/index.js",
+  description: "Updated API server",
+  ports: [3000],
+});
+```
+
+## Example: full workflow
+
+```bash
+# Create sandbox and a web service
+pocketenv create web-app --base openclaw
+pocketenv env put web-app PORT 3000
+pocketenv service create web-app server "node app.js" --ports 3000
+
+# Start everything
+pocketenv start web-app
+pocketenv service start <service-id>
+pocketenv expose web-app 3000 "App"
+```
+
+## API
+
+- [List Services](/api-reference/service/list)
+- [Add Service](/api-reference/service/add)
+- [Start Service](/api-reference/service/start)
+- [Stop Service](/api-reference/service/stop)
+- [Restart Service](/api-reference/service/restart)
+- [Delete Service](/api-reference/service/delete)

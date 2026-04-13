@@ -1,0 +1,105 @@
+---
+title: "Running Commands"
+description: "Execute commands inside a sandbox or drop into an interactive shell."
+---
+
+## Interactive console
+
+Open an SSH session directly inside a running sandbox:
+
+```bash
+pocketenv console my-sandbox
+```
+
+Aliases: `shell`, `ssh`, `s`
+
+```bash
+pocketenv shell my-sandbox
+pocketenv s my-sandbox
+```
+
+The console auto-reconnects if the connection drops. Press `Ctrl+D` or type `exit` to close.
+
+<Note>
+  The sandbox must be running before you can open a console. Use `pocketenv start my-sandbox` first if it's stopped.
+</Note>
+
+## Execute a single command
+
+Run a command non-interactively and get the output back:
+
+```bash
+pocketenv exec my-sandbox "node --version"
+# v22.4.0
+
+pocketenv exec my-sandbox "ls /app"
+```
+
+Multi-word commands need quotes:
+
+```bash
+pocketenv exec my-sandbox "npm install && npm run build"
+```
+
+## Copy files
+
+Transfer files between your local machine and a sandbox using `pocketenv copy` (alias: `cp`):
+
+```bash
+# Local → sandbox
+pocketenv cp ./local-file.txt my-sandbox:/remote/path/file.txt
+
+# Sandbox → local
+pocketenv cp my-sandbox:/remote/path/file.txt ./local-file.txt
+
+# Directory (sandbox → local)
+pocketenv cp my-sandbox:/app/dist ./dist-copy
+```
+
+## Clone a repository on start
+
+Pass `--repo` when starting a sandbox to automatically clone a git repository:
+
+```bash
+pocketenv start my-sandbox --repo github:myorg/myapp
+pocketenv start my-sandbox --repo tangled:myorg/myapp
+pocketenv start my-sandbox --repo https://github.com/myorg/myapp.git
+```
+
+You can also do it at creation time:
+
+```bash
+pocketenv create my-sandbox --repo github:myorg/myapp --ssh
+```
+
+The `--ssh` flag opens a console immediately after the sandbox starts.
+
+## Keep-alive
+
+By default, idle sandboxes stop automatically after a period of inactivity. Use `--keep-alive` to prevent that:
+
+```bash
+pocketenv start my-sandbox --keep-alive
+```
+
+<Warning>
+  Keep-alive sandboxes accrue compute costs continuously. Remember to stop them manually when done.
+</Warning>
+
+## SDK
+
+```typescript
+import { Sandbox } from "@pocketenv/sdk";
+
+const sandbox = await Sandbox.create({ name: "my-sandbox", base: "openclaw" });
+
+// Tagged template literal (interpolation is safe)
+const dir = "/app";
+const result = await sandbox.sh`ls -la ${dir}`;
+console.log(result.stdout);
+console.log(result.stderr);
+console.log(result.exitCode);
+
+// Raw exec
+await sandbox.exec("npm install");
+```
