@@ -1,4 +1,7 @@
-Answers to common frequently asked questions.
+---
+title: "FAQ"
+description: "Answers to common frequently asked questions."
+---
 
 ## What is Pocketenv?
 
