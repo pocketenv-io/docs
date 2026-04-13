@@ -198,8 +198,20 @@
   "navbar": {
     "links": [
       {
+        "type": "github",
+        "icon": "github",
+        "href": "https://github.com/pocketenv-io/pocketenv",
+        "label": "GitHub"
+      },
+      {
+        "type": "discord",
+        "icon": "discord",
+        "href": "https://discord.gg/9ada4pFUFS",
+        "label": "Discord"
+      },
+      {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:hi@pocketenv.io"
       }
     ],
     "primary": {
