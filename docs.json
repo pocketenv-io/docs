@@ -11,6 +11,14 @@
   "api": {
     "openapi": ["api-reference/openapi.json"]
   },
+  "styling": {
+    "codeblocks": {
+      "theme": {
+        "light": "catppuccin-latte",
+        "dark": "synthwave-84"
+      }
+    }
+  },
   "navigation": {
     "tabs": [
       {
