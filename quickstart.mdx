@@ -63,10 +63,10 @@ This opens a browser window to complete the OAuth flow. Once done, your session 
 ## Create a sandbox
 
 ```bash
-pocketenv create my-first-sandbox
+pocketenv create
 ```
 
-By default this uses the `cloudflare` provider and the `openclaw` base image — a minimal Linux environment with common dev tools pre-installed.
+By default this uses the `cloudflare` provider and the `openclaw` base image — a minimal Linux environment with openclaw and common dev tools pre-installed.
 
 Specify a different provider or base:
 
@@ -92,7 +92,7 @@ This drops you into a live SSH session inside the sandbox. Type `exit` to return
 ## Start, stop, and delete
 
 ```bash
-pocketenv stop my-first-sandbox    # Stop the sandbox (keeps state)
+pocketenv stop my-first-sandbox    # Stop the sandbox
 pocketenv start my-first-sandbox   # Resume it later
 pocketenv rm my-first-sandbox      # Delete permanently
 ```
